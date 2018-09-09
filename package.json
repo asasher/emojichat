@@ -1,0 +1,31 @@
+{
+  "name": "emojichat",
+  "version": "1.0.0",
+  "description": "Emoji chat basic serverless setup",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.14.116",
+    "@types/node": "^10.9.4",
+    "serverless-dynamodb-local": "^0.2.33",
+    "serverless-offline": "^3.25.11",
+    "serverless-plugin-aws-alerts": "^1.2.4",
+    "serverless-plugin-offline-dynamodb-stream": "^1.0.13",
+    "serverless-plugin-typescript": "^1.1.5",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0"
+  },
+  "dependencies": {
+    "await-to-js": "^2.0.1",
+    "aws-lambda": "^0.1.2",
+    "aws-sdk": "^2.311.0",
+    "emoji-aware": "^3.0.4",
+    "lodash": "^4.17.10",
+    "parse-error": "^0.2.0",
+    "shortid": "^2.2.13"
+  }
+}

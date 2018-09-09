@@ -1,0 +1,142 @@
+service: emojichat
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 128
+  timeout: 1
+  environment:
+    CHAT_EVENTS_TABLE_NAME: EmojiChatEvents
+    DYNAMO_DB_LOCAL_ENDPOINT: http://localhost:8001
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - Fn::ImportValue: ${self:service}:${self:provider.stage}:EmojiChatEventsTableArn
+        - Fn::ImportValue: ${self:service}:${self:provider.stage}:EmojiChatEventsTableArn/*
+
+functions:
+  joinChat:
+    handler: infra/chat.joinChat
+    events:
+      - http: 
+          method: post
+          path: /chat
+          cors: true
+  sendMessage:
+    handler: infra/chat.sendMessage
+    events:
+      - http: 
+          method: post
+          path: /chat/{id}/message
+          cors: true
+  getAllMessages:
+    handler: infra/chat.getAllMessages
+    events:
+      - http: 
+          method: get
+          path: /chat/{id}
+          cors: true
+  handleChatEvents:
+    handler: infra/chat.handleChatEvents
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::ImportValue: ${self:service}:${self:provider.stage}:EmojiChatEventsStreamArn
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-dynamodb-local
+  - serverless-plugin-offline-dynamodb-stream
+  - serverless-offline
+  - serverless-plugin-aws-alerts
+
+custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8001
+      inMemory: true
+      migrate: true
+  dynamodbStream:
+    host: localhost
+    port: 8001
+    streams:
+      - table: EmojiChatEvents
+        functions:
+          - handleChatEvents
+  alerts: # we should get alert if they're are errors
+    stages:
+      - dev
+      - prod
+    topics:
+      alarm: 
+        topic: ${self:service}-${self:provider.stage}-alerts-alarm
+        notifications:
+          - protocol: email
+            endpoint: as.asher.anjum@gmail.com
+    definitions:
+      functionErrors: # alarm when there is an uncaugh error
+        period: 300 # if there are any errors in a 300 second window
+        treatMissingData: ignore # ignore missing data
+      loggedErrors: # alarm when there is a logged error
+        metric: loggedErrors
+        threshold: 0
+        statistic: Minimum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        pattern: '{$.error EXISTS}'
+    alarms:
+      - functionErrors
+      - loggedErrors
+
+resources:
+  Resources:
+    chatEventsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: EmojiChatEvents
+        AttributeDefinitions:
+          - AttributeName: chatId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: N
+        KeySchema:
+          - AttributeName: chatId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+  Outputs:
+    chatEventsTableArn:
+      Description: The ARN for the EmojiChat Events Table
+      Value:
+        Fn::GetAtt:
+          - ChatEventsTable
+          - Arn
+      Export:
+        Name: ${self:service}:${self:provider.stage}:EmojiChatEventsTableArn
+    chatEventsStreamArn:
+      Description: The ARN for the EmojiChat Events Stream
+      Value:
+        Fn::GetAtt:
+          - ChatEventsTable
+          - StreamArn
+      Export:
+        Name: ${self:service}:${self:provider.stage}:EmojiChatEventsStreamArn
