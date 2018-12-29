@@ -73,17 +73,18 @@ export async function getAllMessages({ id }) : Promise<Answer> {
 
 export async function handleEvent(event) {
   log('Got chat event', event)
+  log('YoLO')
   event = makeChatEvent(event)
   switch(event.type) {
     case 'MessageSentEvent': {
       const { message, createdAt } = event as MessageSentEvent
       
       const diff = (new Date()).getTime() - createdAt
-      if (diff < 10*1000) {
+      if (diff > 10 * 1000) {
         // Ignore events older than 10 secs
         return true
       }
-      
+
       if (message === '😈') {
         // This is to showcase alarms
         throw new Error('Something wicked this way comes')

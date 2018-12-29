@@ -1,9 +1,11 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda'
+import 'source-map-support/register'
 import * as chatService from '../services/chatService'
 import { handleHttpRequest } from './httpCommons'
 import { handleDynamodbStreamEvent } from './streamCommons'
 
 export function joinChat(event: APIGatewayEvent, context: Context) {
+  console.log('Someone joined this chat right now')
   return handleHttpRequest(event, context, chatService.joinChat)
 }
 

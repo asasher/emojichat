@@ -11,7 +11,7 @@ export function getHttpParams(event: APIGatewayEvent) {
   }
 }
 
-export function makeHttpResponse(answer?: Answer) {
+export function makeHttpResponse(answer: Answer) {
   return {
     statusCode: answer.statusCode,
     headers: {
@@ -31,7 +31,7 @@ export async function handleHttpRequest(
   const requestParams = getHttpParams(event)
   const [err, result] = await to<Answer>(useCase(requestParams))
   
-  if (err) {
+  if (err || !result) {
     // Logs an error so we can see in cloud watch
     logError('Got an error while executing use case', err)
     return makeHttpResponse(new Answer(500, {

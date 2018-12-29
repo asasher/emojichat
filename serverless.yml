@@ -8,7 +8,7 @@ provider:
   memorySize: 128
   timeout: 1
   environment:
-    CHAT_EVENTS_TABLE_NAME: EmojiChatEvents
+    CHAT_EVENTS_TABLE_NAME: ${self:custom.chatEventsTableName}
     DYNAMO_DB_LOCAL_ENDPOINT: http://localhost:8001
   iamRoleStatements:
     - Effect: Allow
@@ -20,8 +20,7 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource:
-        - Fn::ImportValue: ${self:service}:${self:provider.stage}:EmojiChatEventsTableArn
-        - Fn::ImportValue: ${self:service}:${self:provider.stage}:EmojiChatEventsTableArn/*
+        - Fn::ImportValue: ${self:service}-resources:${self:provider.stage}:${self:custom.chatEventsTableName}TableArn
 
 functions:
   joinChat:
@@ -51,28 +50,21 @@ functions:
       - stream:
           type: dynamodb
           arn:
-            Fn::ImportValue: ${self:service}:${self:provider.stage}:EmojiChatEventsStreamArn
+            Fn::ImportValue: ${self:service}-resources:${self:provider.stage}:${self:custom.chatEventsTableName}StreamArn
 
 plugins:
   - serverless-plugin-typescript
-  - serverless-dynamodb-local
   - serverless-plugin-offline-dynamodb-stream
   - serverless-offline
   - serverless-plugin-aws-alerts
 
 custom:
-  dynamodb:
-    stages:
-      - dev
-    start:
-      port: 8001
-      inMemory: true
-      migrate: true
+  chatEventsTableName: EmojiChatEvents 
   dynamodbStream:
     host: localhost
     port: 8001
     streams:
-      - table: EmojiChatEvents
+      - table: ${self:custom.chatEventsTableName}
         functions:
           - handleChatEvents
   alerts: # we should get alert if they're are errors
@@ -92,51 +84,12 @@ custom:
       loggedErrors: # alarm when there is a logged error
         metric: loggedErrors
         threshold: 0
-        statistic: Minimum
+        statistic: Sum
         period: 60
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
-        pattern: '{$.error EXISTS}'
+        pattern: '{$.isError IS TRUE}'
+        treatMissingData: ignore # ignore missing data
     alarms:
       - functionErrors
       - loggedErrors
-
-resources:
-  Resources:
-    chatEventsTable:
-      Type: AWS::DynamoDB::Table
-      DeletionPolicy: Retain
-      Properties:
-        TableName: EmojiChatEvents
-        AttributeDefinitions:
-          - AttributeName: chatId
-            AttributeType: S
-          - AttributeName: createdAt
-            AttributeType: N
-        KeySchema:
-          - AttributeName: chatId
-            KeyType: HASH
-          - AttributeName: createdAt
-            KeyType: RANGE
-        ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-        StreamSpecification:
-          StreamViewType: NEW_IMAGE
-  Outputs:
-    chatEventsTableArn:
-      Description: The ARN for the EmojiChat Events Table
-      Value:
-        Fn::GetAtt:
-          - ChatEventsTable
-          - Arn
-      Export:
-        Name: ${self:service}:${self:provider.stage}:EmojiChatEventsTableArn
-    chatEventsStreamArn:
-      Description: The ARN for the EmojiChat Events Stream
-      Value:
-        Fn::GetAtt:
-          - ChatEventsTable
-          - StreamArn
-      Export:
-        Name: ${self:service}:${self:provider.stage}:EmojiChatEventsStreamArn

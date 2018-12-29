@@ -1,0 +1,235 @@
+{
+	"info": {
+		"name": "emojichat",
+		"_postman_id": "3ccfd42d-20b4-d7dd-6b8b-c670238a08fd",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create a New Chat",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2628930a-9b9a-4457-88fc-3d39c22a09fa",
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"chatId\", jsonData.id);",
+							"postman.setEnvironmentVariable(\"userA\", jsonData.userId);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Join a Chat",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5b913c41-586d-4687-b033-f856b0b1b4ba",
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"userB\", jsonData.userId);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"{{chatId}}\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User A Send a Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"chatId\": \"{{chatId}}\",\n\t\"userId\": \"{{userA}}\",\n\t\"message\": \"😎\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat/{{chatId}}/message",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat",
+						"{{chatId}}",
+						"message"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User B Send a Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"chatId\": \"{{chatId}}\",\n\t\"userId\": \"{{userA}}\",\n\t\"message\": \"🤓\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat/{{chatId}}/message",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat",
+						"{{chatId}}",
+						"message"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User B Send a Bad Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"chatId\": \"{{chatId}}\",\n\t\"userId\": \"{{userA}}\",\n\t\"message\": \"😈\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat/{{charId}}/message",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat",
+						"{{charId}}",
+						"message"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "User B Send a Crashing Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"chatId\": \"{{chatId}}\",\n\t\"userId\": \"{{userA}}\",\n\t\"message\": \"🔥\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat/{{charId}}/message",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat",
+						"{{charId}}",
+						"message"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Messages",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"foobar\"\n}"
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/chat/{{chatId}}",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"chat",
+						"{{chatId}}"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

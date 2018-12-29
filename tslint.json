@@ -13,6 +13,7 @@
     "object-literal-sort-keys": false,
     "no-string-literal": false,
     "no-unused-variable": true,
-    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
+    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
+    "no-submodule-imports": false
   }
 }
